@@ -11,192 +11,179 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      home: LoginPage(),
     );
   }
 }
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
+
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  final FocusNode passwordFocus = FocusNode();
+
+  bool isLoading = false;
+  bool isPasswordVisible = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    passwordFocus.dispose();
+    super.dispose();
+  }
+
+  void login() {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        isLoading = true;
+      });
+
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() {
+          isLoading = false;
+        });
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Login Successful")));
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Light green background
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFA8E6CF), // light green
-              Color(0xFFDCEDC1), // lighter green
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              /// Top header container
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 70),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.green, Colors.teal],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
+      backgroundColor: const Color(0xFF0F172A), // Dark blue background
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 120),
+
+                const Text(
+                  "Welcome Back",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                child: const Center(
-                  child: Text(
-                    "Welcome Back",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+
+                const SizedBox(height: 40),
+
+                // EMAIL FIELD
+                TextFormField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: "Email",
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    prefixIcon: const Icon(Icons.email, color: Colors.blue),
+                    filled: true,
+                    fillColor: const Color(0xFF1E293B),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(passwordFocus);
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter your email";
+                    }
+                    if (!value.contains("@")) {
+                      return "Enter a valid email";
+                    }
+                    return null;
+                  },
                 ),
-              ),
 
-              const SizedBox(height: 50),
+                const SizedBox(height: 20),
 
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    /// EMAIL FIELD
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25),
-                      child: TextFormField(
-                        keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(color: Colors.white),
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        decoration: InputDecoration(
-                          hintText: "Write your email",
-                          hintStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon: const Icon(
-                            Icons.email,
-                            color: Colors.white70,
-                          ),
-                          filled: true,
-                          fillColor: Colors.black87,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Enter your email";
-                          }
-                          if (!value.contains('@')) {
-                            return "Enter a valid email";
-                          }
-                          return null;
-                        },
+                // PASSWORD FIELD
+                TextFormField(
+                  controller: passwordController,
+                  focusNode: passwordFocus,
+                  obscureText: !isPasswordVisible,
+                  textInputAction: TextInputAction.done,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: "Password",
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.blue),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.blue,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
+                      },
                     ),
-
-                    const SizedBox(height: 25),
-
-                    /// PASSWORD FIELD
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25),
-                      child: TextFormField(
-                        obscureText: _obscurePassword,
-                        style: const TextStyle(color: Colors.white),
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        decoration: InputDecoration(
-                          hintText: "Write your password",
-                          hintStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon: const Icon(
-                            Icons.lock,
-                            color: Colors.white70,
-                          ),
-                          filled: true,
-                          fillColor: Colors.black87,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.white70,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Enter your password";
-                          }
-                          if (value.length < 6) {
-                            return "Password must be at least 6 characters";
-                          }
-                          return null;
-                        },
-                      ),
+                    filled: true,
+                    fillColor: const Color(0xFF1E293B),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                  ),
+                  onFieldSubmitted: (_) {
+                    login(); // Press enter on password → login
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter your password";
+                    }
+                    if (value.length < 6) {
+                      return "Password must be at least 6 characters";
+                    }
+                    return null;
+                  },
+                ),
 
-                    const SizedBox(height: 35),
+                const SizedBox(height: 30),
 
-                    /// LOGIN BUTTON
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25),
-                      child: SizedBox(
+                // LOGIN BUTTON OR LOADING
+                isLoading
+                    ? const CircularProgressIndicator(color: Colors.blue)
+                    : SizedBox(
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
+                            backgroundColor: Colors.blue,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Login Successful"),
-                                ),
-                              );
-                            }
-                          },
+                          onPressed: login,
                           child: const Text(
                             "Login",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontSize: 16),
                           ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 50),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
