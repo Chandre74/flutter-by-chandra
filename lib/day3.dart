@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_driver_app/day4.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,6 +31,37 @@ class Shipment {
     required this.pickupAddress,
     required this.deliveryAddress,
     required this.status,
+  });
+}
+
+class ShipmentDetailsModel {
+  final String id;
+  final String pickupAddress;
+  final String deliveryAddress;
+  String status;
+
+  final String senderName;
+  final String receiverName;
+  final double weight;
+  final double price;
+  final DateTime createdDate;
+  final DateTime estimatedDelivery;
+  final bool isFragile;
+  final String notes;
+
+  ShipmentDetailsModel({
+    required this.id,
+    required this.pickupAddress,
+    required this.deliveryAddress,
+    required this.status,
+    required this.senderName,
+    required this.receiverName,
+    required this.weight,
+    required this.price,
+    required this.createdDate,
+    required this.estimatedDelivery,
+    required this.isFragile,
+    required this.notes,
   });
 }
 
@@ -129,66 +161,102 @@ class _ShipmentScreenState extends State<ShipmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Shipment List"),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
-      ),
       body: ListView.builder(
         itemCount: shipments.length,
         itemBuilder: (context, index) {
           final shipment = shipments[index];
-
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+          //GuestureDetecture
+          return InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ShipmentDetailsScreen(id: shipment.id),
+              ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Shipment ID: ${shipment.id}",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            child: Card(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Shipment ID: ${shipment.id}",
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                  Text("Pickup: ${shipment.pickupAddress}"),
-                  Text("Delivery: ${shipment.deliveryAddress}"),
+                    Text("Pickup: ${shipment.pickupAddress}"),
+                    Text("Delivery: ${shipment.deliveryAddress}"),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                  Text(
-                    "Status: ${shipment.status}",
-                    style: TextStyle(
-                      color: getStatusColor(shipment.status),
-                      fontWeight: FontWeight.bold,
+                    Text(
+                      "Status: ${shipment.status}",
+                      style: TextStyle(
+                        color: getStatusColor(shipment.status),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () => updateStatus(index),
+                        child: const Text("Update Status"),
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () => {},
+                        child: const Text(
+                          "Call Customer",
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
-                      onPressed: () => updateStatus(index),
-                      child: const Text("Update Status"),
                     ),
-                  ),
-                ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () => {},
+                        child: const Text(
+                          "Confirm Delivery",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
