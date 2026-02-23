@@ -53,11 +53,53 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Dashboard"),
-        titleTextStyle: TextStyle(color: Colors.amber, fontSize: 20),
-
+        titleTextStyle: const TextStyle(color: Colors.amber, fontSize: 20),
         backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.amber),
       ),
-      body: ShipmentScreen(),
+
+      drawer: Drawer(
+        child: Column(
+          children: [
+            const UserAccountsDrawerHeader(
+              accountName: Text("Your Name"),
+              accountEmail: Text("your@email.com"),
+              decoration: BoxDecoration(color: Colors.black),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text("Profile"),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text("History"),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+
+            const Divider(),
+
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text("Logout", style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+
+      body: const ShipmentScreen(),
     );
   }
 }
