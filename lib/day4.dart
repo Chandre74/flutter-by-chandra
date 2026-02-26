@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logistics_driver_app/day3.dart';
+import 'package:logistics_driver_app/maps.dart';
 
 void main() {
   runApp(
@@ -143,6 +144,20 @@ class DashboardScreen extends StatelessWidget {
               title: const Text("History"),
               onTap: () {
                 Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.location_on, color: Colors.green),
+              title: const Text("Live Tracking"),
+              onTap: () {
+                Navigator.pop(context); // Close drawer first
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LiveTrackingScreen(),
+                  ),
+                );
               },
             ),
 
