@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
 
       appBar: AppBar(
-        title: const Text("Login"),
+        title: const Text("LogisticsAPP"),
         titleTextStyle: TextStyle(
           color: Colors.amber,
           fontSize: 20,

@@ -1,8 +1,4 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'day3.dart';
-import 'day3_2.dart';
 import 'day4.dart';
 
 void main() {
