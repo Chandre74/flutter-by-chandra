@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_driver_app/data/model/shipment_model.dart';
+import 'package:logistics_driver_app/data/raw_datas/shipment.dart';
 import 'package:logistics_driver_app/day4.dart';
+import 'package:logistics_driver_app/shipment_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,57 +20,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// ----------------------
-/// SHIPMENT MODEL
-/// ----------------------
-class Shipment {
-  final String id;
-  final String pickupAddress;
-  final String deliveryAddress;
-  String status;
-
-  Shipment({
-    required this.id,
-    required this.pickupAddress,
-    required this.deliveryAddress,
-    required this.status,
-  });
-}
-
-class ShipmentDetailsModel {
-  final String id;
-  final String pickupAddress;
-  final String deliveryAddress;
-  String status;
-
-  final String senderName;
-  final String receiverName;
-  final double weight;
-  final double price;
-  final DateTime createdDate;
-  final DateTime estimatedDelivery;
-  final bool isFragile;
-  final String notes;
-
-  ShipmentDetailsModel({
-    required this.id,
-    required this.pickupAddress,
-    required this.deliveryAddress,
-    required this.status,
-    required this.senderName,
-    required this.receiverName,
-    required this.weight,
-    required this.price,
-    required this.createdDate,
-    required this.estimatedDelivery,
-    required this.isFragile,
-    required this.notes,
-  });
-}
-
-/// ----------------------
-/// SHIPMENT SCREEN
-/// ----------------------
 class ShipmentScreen extends StatefulWidget {
   const ShipmentScreen({super.key});
 
@@ -76,70 +28,6 @@ class ShipmentScreen extends StatefulWidget {
 }
 
 class _ShipmentScreenState extends State<ShipmentScreen> {
-  //  10 Shipments
-  List<Shipment> shipments = [
-    Shipment(
-      id: "SHP001",
-      pickupAddress: "12 Main Street",
-      deliveryAddress: "45 Green Road",
-      status: "Pending",
-    ),
-    Shipment(
-      id: "SHP002",
-      pickupAddress: "78 Blue Ave",
-      deliveryAddress: "90 Sunset Blvd",
-      status: "Shipped",
-    ),
-    Shipment(
-      id: "SHP003",
-      pickupAddress: "11 Oak Street",
-      deliveryAddress: "22 Pine Road",
-      status: "Delivered",
-    ),
-    Shipment(
-      id: "SHP004",
-      pickupAddress: "34 Lake View",
-      deliveryAddress: "56 Hill Street",
-      status: "Pending",
-    ),
-    Shipment(
-      id: "SHP005",
-      pickupAddress: "99 River Road",
-      deliveryAddress: "10 Forest Lane",
-      status: "Shipped",
-    ),
-    Shipment(
-      id: "SHP006",
-      pickupAddress: "5 Market Street",
-      deliveryAddress: "8 King Avenue",
-      status: "Delivered",
-    ),
-    Shipment(
-      id: "SHP007",
-      pickupAddress: "44 Sunset Drive",
-      deliveryAddress: "77 Sunrise Blvd",
-      status: "Pending",
-    ),
-    Shipment(
-      id: "SHP008",
-      pickupAddress: "100 Apple St",
-      deliveryAddress: "200 Orange Rd",
-      status: "Shipped",
-    ),
-    Shipment(
-      id: "SHP009",
-      pickupAddress: "300 Banana Ave",
-      deliveryAddress: "400 Mango Blvd",
-      status: "Delivered",
-    ),
-    Shipment(
-      id: "SHP010",
-      pickupAddress: "15 Cedar Lane",
-      deliveryAddress: "25 Maple Street",
-      status: "Pending",
-    ),
-  ]; // randomized through chatbot
-
   void updateStatus(int index) {
     setState(() {
       if (shipments[index].status == "Pending") {
@@ -161,105 +49,126 @@ class _ShipmentScreenState extends State<ShipmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: shipments.length,
-        itemBuilder: (context, index) {
-          final shipment = shipments[index];
-          //GuestureDetecture
-          return InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ShipmentDetailsScreen(id: shipment.id),
-              ),
-            ),
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Shipment ID: ${shipment.id}",
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+      body: FutureBuilder(
+        future: ShipmentService.fetchShipments(),
+        builder: (context, asyncSnapshot) {
+          if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (asyncSnapshot.hasError) {
+            return Center(child: Text("Error: ${asyncSnapshot.error}"));
+          }
+
+          if (asyncSnapshot.hasData) {
+            final shipments = asyncSnapshot.data as List<Shipment>;
+            return ListView.builder(
+              itemCount: shipments.length,
+              itemBuilder: (context, index) {
+                final shipment = shipments[index];
+
+                return InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ShipmentDetailsScreen(id: shipment.id),
                     ),
-
-                    const SizedBox(height: 8),
-
-                    Text("Pickup: ${shipment.pickupAddress}"),
-                    Text("Delivery: ${shipment.deliveryAddress}"),
-
-                    const SizedBox(height: 8),
-
-                    Text(
-                      "Status: ${shipment.status}",
-                      style: TextStyle(
-                        color: getStatusColor(shipment.status),
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-
-                    const SizedBox(height: 12),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Shipment ID: ${shipment.id}",
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        onPressed: () => updateStatus(index),
-                        child: const Text("Update Status"),
-                      ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+
+                          const SizedBox(height: 8),
+
+                          Text("Pickup: ${shipment.pickupAddress}"),
+                          Text("Delivery: ${shipment.deliveryAddress}"),
+
+                          const SizedBox(height: 8),
+
+                          Text(
+                            "Status: ${shipment.status}",
+                            style: TextStyle(
+                              color: getStatusColor(shipment.status),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        onPressed: () => {},
-                        child: const Text(
-                          "Call Customer",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+
+                          const SizedBox(height: 12),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () => updateStatus(index),
+                              child: const Text("Update Status"),
+                            ),
                           ),
-                        ),
-                        onPressed: () => {},
-                        child: const Text(
-                          "Confirm Delivery",
-                          style: TextStyle(color: Colors.white),
-                        ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () => {},
+                              child: const Text(
+                                "Call Customer",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () => {},
+                              child: const Text(
+                                "Confirm Delivery",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          );
+                  ),
+                );
+              },
+            );
+          }
+          return const Center(child: Text("No shipments found"));
         },
       ),
     );

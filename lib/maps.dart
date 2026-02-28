@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:logistics_driver_app/app_colors.dart';
 
 class LiveTrackingScreen extends StatefulWidget {
   const LiveTrackingScreen({super.key});
@@ -15,7 +16,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionStream;
 
-  LatLng _currentPosition = const LatLng(0, 0);
+  LatLng? _currentPosition;
   LatLng? _previousPosition;
 
   BitmapDescriptor? _busIcon;
@@ -23,16 +24,21 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
   @override
   void initState() {
     super.initState();
-    _loadBusIcon();
-    _startLocationStream();
+    _initialize();
   }
 
+  Future<void> _initialize() async {
+    await _loadBusIcon();
+    await _startLocationStream();
+  }
+
+  // assets\bus.png
+  // assets\bus.png
   Future<void> _loadBusIcon() async {
     _busIcon = await BitmapDescriptor.asset(
-      const ImageConfiguration(),
-      'assets/icons/bus.png',
+      const ImageConfiguration(size: Size(60, 60)),
+      'assets/bus.png',
     );
-    setState(() {});
   }
 
   Future<void> _startLocationStream() async {
@@ -47,50 +53,48 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
     _positionStream =
         Geolocator.getPositionStream(
           locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
+            accuracy: LocationAccuracy.best,
             distanceFilter: 5,
           ),
         ).listen((Position position) {
-          LatLng newPosition = LatLng(position.latitude, position.longitude);
+          final newLatLng = LatLng(position.latitude, position.longitude);
 
           _previousPosition = _currentPosition;
-          _currentPosition = newPosition;
+          _currentPosition = newLatLng;
 
-          _animateCameraSmooth(newPosition);
+          if (_mapController != null) {
+            _mapController!.animateCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(
+                  target: newLatLng,
+                  zoom: 17,
+                  tilt: 45,
+                  bearing: _calculateBearing(),
+                ),
+              ),
+            );
+          }
 
           setState(() {});
         });
   }
 
-  void _animateCameraSmooth(LatLng position) {
-    _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: position,
-          zoom: 17,
-          bearing: _calculateBearing(),
-          tilt: 45,
-        ),
-      ),
-    );
-  }
-
   double _calculateBearing() {
-    if (_previousPosition == null) return 0;
+    if (_previousPosition == null || _currentPosition == null) return 0;
 
-    double lat1 = _previousPosition!.latitude;
-    double lon1 = _previousPosition!.longitude;
-    double lat2 = _currentPosition.latitude;
-    double lon2 = _currentPosition.longitude;
+    final lat1 = _previousPosition!.latitude * pi / 180;
+    final lon1 = _previousPosition!.longitude * pi / 180;
+    final lat2 = _currentPosition!.latitude * pi / 180;
+    final lon2 = _currentPosition!.longitude * pi / 180;
 
-    double dLon = (lon2 - lon1);
+    final dLon = lon2 - lon1;
 
-    double y = sin(dLon) * cos(lat2);
-    double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+    final y = sin(dLon) * cos(lat2);
+    final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
 
-    double bearing = atan2(y, x);
+    final bearing = atan2(y, x);
 
-    return bearing * 180 / pi;
+    return (bearing * 180 / pi + 360) % 360;
   }
 
   @override
@@ -101,21 +105,26 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_currentPosition == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Live Tracking"),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.kGreen,
       ),
       body: GoogleMap(
         initialCameraPosition: CameraPosition(
-          target: _currentPosition,
-          zoom: 15,
+          target: _currentPosition!,
+          zoom: 17,
         ),
-        myLocationEnabled: false,
+        myLocationEnabled: true,
+        myLocationButtonEnabled: true,
         markers: {
           Marker(
             markerId: const MarkerId("driver"),
-            position: _currentPosition,
+            position: _currentPosition!,
             icon: _busIcon ?? BitmapDescriptor.defaultMarker,
             rotation: _calculateBearing(),
             anchor: const Offset(0.5, 0.5),
