@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_driver_app/Providers/shipment_provider.dart';
 import 'package:logistics_driver_app/data/model/shipment_model.dart';
 import 'package:logistics_driver_app/data/raw_datas/shipment.dart';
 import 'package:logistics_driver_app/day4.dart';
 import 'package:logistics_driver_app/shipment_service.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -48,6 +50,7 @@ class _ShipmentScreenState extends State<ShipmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final shipments = Provider.of<ShipmentProvider>(context).shipmentList;
     return Scaffold(
       body: FutureBuilder(
         future: ShipmentService.fetchShipments(),
@@ -61,7 +64,7 @@ class _ShipmentScreenState extends State<ShipmentScreen> {
           }
 
           if (asyncSnapshot.hasData) {
-            final shipments = asyncSnapshot.data as List<Shipment>;
+            // final shipments = asyncSnapshot.data as List<Shipment>;
             return ListView.builder(
               itemCount: shipments.length,
               itemBuilder: (context, index) {

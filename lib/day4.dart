@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_driver_app/Providers/shipment_provider.dart';
 import 'package:logistics_driver_app/data/model/shipment_details_model.dart';
 import 'package:logistics_driver_app/data/raw_datas/shipment_details.dart';
 import 'package:logistics_driver_app/day3.dart';
 import 'package:logistics_driver_app/maps.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(
@@ -187,12 +189,12 @@ class DashboardScreen extends StatelessWidget {
 class ShipmentDetailsScreen extends StatelessWidget {
   final String id;
 
-  ShipmentDetailsScreen({super.key, required this.id});
+  const ShipmentDetailsScreen({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
-    final ShipmentDetailsModel shipment = shipmentDetailsList.firstWhere(
-      (item) => item.id == id,
+    final shipment = context.watch<ShipmentProvider>().getShipmentDetailsById(
+      id,
     );
     return Scaffold(
       appBar: AppBar(title: Text("Shipment ${shipment.id}")),
